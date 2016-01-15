@@ -9,6 +9,7 @@
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
     <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/commonmark/0.24.0/commonmark.min.js"></script>
 
     <!-- Scripts -->
     <script type="text/javascript" src="mhsgame.js"></script>
@@ -22,7 +23,7 @@
                 <span id="settings">&#x2699;</span>
             </div>
             <div id="console" class="row">
-                <pre>Loading...</pre>
+                <div id="log"></div>
             </div>
             <div id="command" class="row">
                 <input type="text" id="cmdent" class="typeahead" placeholder="Enter Command" />
@@ -35,7 +36,7 @@
             </div>
             <div id="map" class="row">
                 <!-- Dynamically Loaded SVGs here -->
-                MAP
+                <svg></svg>
             </div>
         </div>
     </div>

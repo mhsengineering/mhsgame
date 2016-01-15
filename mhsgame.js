@@ -6,22 +6,38 @@
 
 window.mhsgame = (function () {
 
+    /********************
+     * Global Variables *
+     ********************/
+
+    var cm_writer = new commonmark.HtmlRenderer();
+    var cm_reader = new commonmark.Parser();
+
     /*************
      * Functions *
      *************/
 
-    function addMessage(text) {
-        var para = document.createElement("p");
-        var lines = text.split("\n");
-        var text = lines.map( line => document.createTextNode(line) );
+    function addMessage( md ) {
+        var para = document.createElement("div");
+        var parsed = cm_reader.parse( md );
+        var render = cm_writer.render( parsed );
+        para.classList.add("message");
+        para.innerHTML = render;
+        $("#log").append(para);
+    }
 
-        for ( var i=0;i<text.length;i++ ) {
-            para.appendChild( text[i] );
-            if ( i+1 !== text.length )
-                para.appendChild( document.createElement("br") );
+    function sanitizeMd( text ) {
+        var escaped = [];
+        var esc = "";
+        for ( c of text ) {
+            esc = "&#" + c.charCodeAt().toString() + ";";
+            escaped.push( esc );
         }
+        return escaped.join("");
+    }
 
-        $("#console>pre").append(para);
+    function changeMap( svg ) {
+        $("#map svg").html( svg );
     }
 
     function init() {
@@ -34,7 +50,20 @@ window.mhsgame = (function () {
 
         // Greet User
         addMessage("Page Loaded.");
-        addMessage("Nothing to show yet. Check back Soon.");
+        addMessage(
+`
+# MHS Game
+
+## Introduction
+
+A simple text adventure game.
+`                 );
+
+        changeMap(
+`
+<text x="10" y="10">Map Here</text>
+`
+                );
 
         // Start Typeahead
         /*
@@ -88,5 +117,7 @@ Available Commands:
     /**********
      * Return *
      **********/
-    return {};
+    return {
+        sm: sanitizeMd,
+    };
 })();
