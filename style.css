@@ -1,0 +1,138 @@
+/*
+ * style.css
+ */
+
+/**********
+ * Global *
+ **********/
+
+html, body {
+    height: 100%;
+    width: 100%;
+
+    margin: 0px;
+}
+
+body * {
+    box-sizing: border-box;
+    margin: 0px;
+}
+
+/********
+ * Grid *
+ ********/
+
+#game {
+    height: 100%;
+    width: 100%;
+}
+
+.col {
+    padding: 10px;
+}
+.left {
+    float: left;
+
+    width: calc(100% - 300px);
+    height: 100%;
+}
+.right {
+    float: right;
+
+    width: 300px;
+    height: 100%;
+}
+
+#titlebar {
+    height: 30px;
+}
+#console {
+    height: calc(100% - 60px);
+}
+#command {
+    height: 30px;
+}
+
+#inventory {
+    height: 50%;
+}
+#map {
+    height: 50%;
+}
+
+/***************
+ * Left Column *
+ ***************/
+
+#titlebar {
+    height: 30px;
+
+    border: solid 3px;
+    border-radius: 10px 10px 0px 0px;
+}
+#title {
+    float: left;
+    width: calc(100% - 40px);
+
+    text-align: center;
+    font-size: 20px;
+}
+#settings {
+    float: right;
+    width: 40px;
+
+    font-size: 25px;
+    text-align: center;
+    line-height: 100%;
+    height: 100%;
+
+    cursor: pointer;
+
+    border-left: solid 3px;
+}
+
+#console {
+    height: calc(100% - 70px);
+    padding: 10px;
+
+    border: solid 3px;
+    border-top: 0px;
+}
+#console > pre {
+    height: 100%;
+
+    overflow-y: scroll;
+}
+#console > pre > p {
+    background: #FFF;
+}
+#console > pre > p:nth-child(even) {
+    background: #C6C6C6;
+}
+
+#command {
+    height: 40px;
+
+    background: black;
+    border: solid 3px;
+    border-top: 0px;
+    border-radius: 0px 0px 10px 10px;
+}
+#command > input {
+    width: 100%;
+    border: 0px;
+}
+
+/****************
+ * Right Column *
+ ****************/
+
+#inventory {
+    border: solid 3px;
+    border-radius: 10px;
+}
+
+#map {
+    border: solid 3px;
+    border-radius: 10px;
+}
