@@ -13,9 +13,37 @@ window.mhsgame = (function () {
     var cm_writer = new commonmark.HtmlRenderer();
     var cm_reader = new commonmark.Parser();
 
+    var ls_commands = [];
+    var ls_stories = [];
+
+    var cur_story = null;
+
     /*************
      * Functions *
      *************/
+
+    function registerStory(opt, run) {
+        ls_stories.push({
+            name: opt.name,
+            description: opt.description,
+            run: run,
+        });
+    }
+
+    function registerCommand(opt, run) {
+        for ( cmd of opt.cmd ) {
+            if ( cmd.substr(0,1) != "_" ) {
+                throw Error("Command does not start with _!");
+            }
+            if ( cmd.search(" ") > -1 ) {
+                throw Error("Command contains a space!");
+            }
+        }
+        ls_commands.push({
+            cmd: opt.cmd,
+            run: run,
+        });
+    }
 
     function addMessage( md ) {
         var para = document.createElement("div");
@@ -121,33 +149,58 @@ window.mhsgame = (function () {
     function init() {
         // Register Element Events
         $("#settings").on("click", handleOpenSettings);
-        $("#cmdent").on("keypress", handleKeyPress);
+        $("#cmdent").on("keydown", handleKeyPress);
 
         // Reset UI
         reset();
 
-        // Greet User
-        addMessage("Page Loaded.");
-        addMessage(
-`
-# MHS Game
+        // Start met game
+        if ( !startStory("meta") ) {
+            addMessage("Unable to find `meta` game!");
+        }
+    }
 
-## Introduction
+    function startStory( name ) {
+        for ( story of ls_stories ) {
+            if ( story.name == name ) {
+                cur_story = story;
+                execCommand( "_start" );
+                return true;
+            }
+        }
+        return false;
+    }
 
-A simple text adventure game.
-`                 );
+    function execCommand( txt ) {
+        var first = txt.split(" ")[0];
+        for ( cmd of ls_commands ) {
+            for ( alias of cmd.cmd ) {
+                if ( alias == first ) {
+                    cmd.run(txt);
+                    return;
+                }
+            }
+        }
+        if ( cur_story ) {
+            cur_story.run( txt, {
+                tell: addMessage,
+                map: changeMap,
+                sanitize: sanitizeMd,
+            });
+            return;
+        }
+        addMessage("Unknown Command: **"+sanitizeMd(txt)+"**");
+    }
 
-        // Start Typeahead
-        /*
-        $("#cmdent").typeahead({
-            hint: true,
-            highlight: true,
-        },
-        {
-            name: "Command",
-            source: handleCompleteCommand,
-        });
-        */
+    function getStories() {
+        var ret = [];
+        for ( story of ls_stories ) {
+            ret.push({
+                name: story.name,
+                description: story.description,
+            });
+        }
+        return ret;
     }
 
     /**********
@@ -155,7 +208,7 @@ A simple text adventure game.
      **********/
 
     function handleOpenSettings( event ) {
-        addMessage("Try typing `help`.");
+        execCommand("_settings");
     }
 
     function handleKeyPress( event ) {
@@ -163,15 +216,16 @@ A simple text adventure game.
 
         if ( event.keyCode == 13 && txt != "" ) {
             event.preventDefault();
-            if ( txt == "help" )
-                addMessage(`
-Available Commands:
-    help - display this message
-                        `);
-            else
-                addMessage("Unknown Command: " + txt );
+
+            execCommand( txt );
+
             $("#cmdent").val("");
             $("#console>pre").scrollTop( $("#console>pre").prop("scrollHeight") );
+        }
+        if ( event.keyCode == 9 ) {
+            event.preventDefault();
+
+            execCommand("_suggest");
         }
     }
 
@@ -190,9 +244,11 @@ Available Commands:
      * Return *
      **********/
     return {
-        sm: sanitizeMd,
-        ai: addItem,
-        re: removeItem,
-        ui: updateItem,
+        registerStory,
+        registerCommand,
+        getStories,
+        sanitizeMd,
+        startStory,
+        tell: addMessage,
     };
 })();
