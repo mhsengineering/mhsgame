@@ -44,7 +44,7 @@ mhsgame.registerCommand({
     var txt = ["Stories:\n\n"];
     for ( story of stories ) {
         txt.push( "* **" + mhsgame.sanitizeMd(story.name) + "** - ");
-        txt.push( mhsgame.sanitizeMd(story.description) );
+        txt.push( mhsgame.sanitizeMd(story.description) + "\n\n" );
     }
     mhsgame.tell( txt.join("") );
 });

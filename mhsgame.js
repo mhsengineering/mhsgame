@@ -185,6 +185,9 @@ window.mhsgame = (function () {
             cur_story.run( txt, {
                 tell: addMessage,
                 map: changeMap,
+                addItem,
+                updateItem,
+                removeItem,
                 sanitize: sanitizeMd,
             });
             return;
@@ -203,6 +206,11 @@ window.mhsgame = (function () {
         return ret;
     }
 
+    function resetConsole() {
+            $("#cmdent").val("");
+            $("#log").scrollTop( $("#console>pre").prop("scrollHeight") );
+    }
+
     /**********
      * Events *
      **********/
@@ -219,13 +227,14 @@ window.mhsgame = (function () {
 
             execCommand( txt );
 
-            $("#cmdent").val("");
-            $("#console>pre").scrollTop( $("#console>pre").prop("scrollHeight") );
+            resetConsole();
         }
         if ( event.keyCode == 9 ) {
             event.preventDefault();
 
             execCommand("_suggest");
+
+            resetConsole();
         }
     }
 
