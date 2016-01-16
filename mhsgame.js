@@ -40,13 +40,91 @@ window.mhsgame = (function () {
         $("#map svg").html( svg );
     }
 
+    function nextItemId() {
+        var lis = $("#inventory .item").toArray();
+        var id = 1;
+        var liid;
+        for ( li of lis ) {
+            liid = parseInt( li.getAttribute("data-id"), 16 );
+            if ( liid >= id ) {
+                id = liid+1;
+            }
+        }
+        return id;
+    }
+
+    function addItem(name, quantity) {
+        var li = document.createElement("li");
+        var title = document.createTextNode(name);
+        var quant = document.createElement("span");
+        var qtext = document.createTextNode( "x"+quantity.toString(10) );
+        var id = nextItemId();
+
+        removeItem( 0 );
+
+        li.classList.add("item");
+        quant.classList.add("quantity");
+
+        li.setAttribute("data-id", id.toString(16));
+        li.setAttribute("data-quant", quantity.toString(10));
+
+        quant.appendChild( qtext );
+        li.appendChild( title );
+        li.appendChild( quant );
+
+        $("#inventory ul").append( li );
+
+        return id;
+    }
+
+    function removeItem( id ) {
+        var lis = $("#inventory .item").toArray();
+        var liid;
+        for ( li of lis ) {
+            liid = parseInt( $(li).attr("data-id"), 16 );
+            if ( liid == id ) {
+                $(li).remove();
+                if ( lis.length <= 1 && id != 0 )
+                    clearItems();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function updateItem( id, quant ) {
+        var lis = $("#inventory .item").toArray();
+        var liid;
+        for ( li of lis ) {
+            liid = parseInt( $(li).attr("data-id"), 16 );
+            if ( liid == id ) {
+                $(li).attr("data-quant", quant.toString(10));
+                $(li).find(".quantity").html("x" + quant.toString(10));
+            }
+        }
+    }
+
+    function clearItems() {
+        $("#inventory ul").html(
+                "<li class='item' data-id='0' data-quant='0'>"+
+                "(No Items) <span class='quantity'>x0</span></li>");
+    }
+
+    function reset() {
+        // Reset Items
+        clearItems();
+
+        // Reset Map
+        changeMap("<text x=\"10\" y=\"10\">Map Here</text>");
+    }
+
     function init() {
         // Register Element Events
         $("#settings").on("click", handleOpenSettings);
         $("#cmdent").on("keypress", handleKeyPress);
 
-        // Clear Console
-        $("#console>pre").html("");
+        // Reset UI
+        reset();
 
         // Greet User
         addMessage("Page Loaded.");
@@ -58,12 +136,6 @@ window.mhsgame = (function () {
 
 A simple text adventure game.
 `                 );
-
-        changeMap(
-`
-<text x="10" y="10">Map Here</text>
-`
-                );
 
         // Start Typeahead
         /*
@@ -119,5 +191,8 @@ Available Commands:
      **********/
     return {
         sm: sanitizeMd,
+        ai: addItem,
+        re: removeItem,
+        ui: updateItem,
     };
 })();
