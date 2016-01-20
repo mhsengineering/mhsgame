@@ -61,6 +61,9 @@ window.mhsgame = (function () {
             esc = "&#" + c.charCodeAt().toString() + ";";
             escaped.push( esc );
         }
+        if ( escaped.length < 1 ) {
+            escaped.push("&nbsp;");
+        }
         return escaped.join("");
     }
 
@@ -158,6 +161,10 @@ window.mhsgame = (function () {
         if ( !startStory("meta") ) {
             addMessage("Unable to find `meta` game!");
         }
+
+        // Window events
+        $( window ).on("hashchange", handleHashChange);
+        handleHashChange();
     }
 
     function startStory( name ) {
@@ -172,6 +179,14 @@ window.mhsgame = (function () {
     }
 
     function execCommand( txt ) {
+        var semis = txt.split(";");
+        if ( semis.length > 1 ) {
+            for ( semi of semis ) {
+                execCommand( semi );
+            }
+            return;
+        }
+
         var first = txt.split(" ")[0];
         for ( cmd of ls_commands ) {
             for ( alias of cmd.cmd ) {
@@ -242,10 +257,16 @@ window.mhsgame = (function () {
         cb(["move","attack"]);
     }
 
+    function handleHashChange() {
+        var hash = location.hash.substr(1);
+        if ( hash.length > 0 )
+            execCommand( location.hash.substr(1) );
+    }
+
     /**************
      * Initialize *
      **************/
-    
+
     // Register Load Event
     $(window).on("load", init);
 
