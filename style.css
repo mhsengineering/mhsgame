@@ -194,3 +194,9 @@ body * {
     background: #3A3A3A;
     color: #FFF;
 }
+
+.message blockquote {
+    padding: 0px 8px;
+    margin-left: 5px;
+    border-left: 2px solid;
+}

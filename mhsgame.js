@@ -223,7 +223,7 @@ window.mhsgame = (function () {
 
     function resetConsole() {
             $("#cmdent").val("");
-            $("#log").scrollTop( $("#console>pre").prop("scrollHeight") );
+            $("#log").scrollTop( $("#log").prop("scrollHeight") );
     }
 
     /**********
