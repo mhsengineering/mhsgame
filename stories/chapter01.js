@@ -52,31 +52,20 @@
         start: `# Chapter 1
 
                 It's the first day of school, and you've just been dropped off outside the main atrium.`,
-        principal: `Mr. Manning, the principal, is busy greeting everyone and telling them to go to the
+        atrium: `Mr. Manning, the principal, is busy greeting everyone and telling them to go to the
                     auditorium for orientation.`,
         greet: `>Why hello there!  Welome to Morristown High School!  What's your name?`,
         reaponse: `Nice to meet you, %name%.  I hope you enjoy MHS.  Now why don't you head to the auditorium
-                   for orientation?`,
-        guessrange: "The number is between 1 and 10. Try again.",
-        guesshigh: "You guessed high!",
-        guesslow: "You guessed low!",
-        guesscorrect: `
-    You guessed the number correctly! It only took you %tries% tries!
-
-    You have completed the sample story for mhsgame. It's now time for you to pave your own adventure. Copy sample.js to a new file
-    and add it to index.html scripts. Remember to use the sample.js file because others might not be in the correct format. Good luck
-    and have fun!
-    `,
+                   for orientation?  It'll be starting soon.`,
+        auditorium: `You enter the auditorium, where everyone is busy chatting with their old friends as well
+                     as making new acquaintances.`,
+        wait: `You wait around awkwardly for orientation to start.  Ten minutes pass but it shows no sign of starting.`,
+        friends: `You decide to try your luck with making new friends.  Before long, you meet %friend%, and soon it's
+                  like you two have been friends for life.`,
+        orientation: `Before you know it, Mr. Manning is telling everyone to quiet down, and you anxiously await to
+                      hear what he has to tell you.`,
         // It's Okay to nest objects and arrays within locale.
-        gameend: [
-            "The game is over.",
-            "I said the game is over",
-            "Remember how I said the game is over earlier? Go home.",
-            "I'm ignoring you.",
-            "-",
-            "-",
-            "Seriosuly, go home."
-        ],
+        gameend: `Stay tuned for Chapter 2!`,
     };
 
     /********************
