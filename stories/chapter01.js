@@ -78,6 +78,7 @@
         // SECTION_GREET
         this.introduced = false;
     }
+
     Chapter01.prototype.respond = function (command) {
         var cmd = procCmd(command);
 
@@ -97,7 +98,7 @@
             if ( cmd[0] == "enter" || cmd[0] == "go to" ) {
                 if ( cmd[1] == "atrium" ) {
                     this.tell(locale.atrium);
-                    this.section = SECTION_GREET;
+                    this.section = this.SECTION_GREET;
                 }
                 /* TODO: Handle other places */
             } else {
@@ -110,14 +111,14 @@
             if ( cmd[0] == "enter" || cmd[0] == "go to" ) {
                 if ( cmd[1] == "auditorium" ) {
                     this.tell(locale.auditorium);
-                    this.section = SECTION_AUDITORIUM;
+                    this.section = this.SECTION_AUDITORIUM;
                 }
             } else if ( cmd[0] == "talk to" || cmd[0] == "greet" ) {
                 if ( this.introduced ) {
                     this.tell(locale.introduced);
                 } else if ( cmd[1] == "Mr. Manning" ) {
                     this.tell(locale.greet);
-                    this.section = SECTION_RESPONSE;
+                    this.section = this.SECTION_RESPONSE;
                 }
             } else {
                 this.tell(locale.unknown);
@@ -175,7 +176,7 @@
             this.tell(locale.end);
             return;
         }
-    }
+    };
 
     Chapter01.prototype.SECTION_START      = 0;
     Chapter01.prototype.SECTION_ATRIUM     = 1;
