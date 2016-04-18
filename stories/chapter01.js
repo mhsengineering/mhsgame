@@ -36,24 +36,22 @@
      **********/
     var locale = {
         unknown: "Unable to process command!",
-        start: `# Chapter 1
-
-                It's the first day of school, and you've just been dropped off outside the main atrium.`,
-        atrium: `Mr. Manning, the principal, is busy greeting everyone and telling them to go to the
-                 auditorium for orientation.`,
+        start: `# Chapter 1\n\nIt's the first day of school, and you've just been dropped off outside the main atrium.`,
+        atrium: `Mr. Manning, the principal, is busy greeting everyone and telling them to go to the ` +
+                `auditorium for orientation.`,
         greet: `>Why hello there!  Welome to Morristown High School!  What's your name?`,
-        response: `Nice to meet you, %name%.  I hope you enjoy MHS.  Now why don't you head to the auditorium
-                   for orientation?  It'll be starting soon.`,
+        response: `Nice to meet you, %name%.  I hope you enjoy MHS.  Now why don't you head to the auditorium` +
+                  `for orientation?  It'll be starting soon.`,
         introduced: `You've already introduced yourself to Mr. Manning.  There's no point doing so again.`,
-        auditorium: `You enter the auditorium, where everyone is busy chatting with their old friends as well
-                     as making new acquaintances.`,
+        auditorium: `You enter the auditorium, where everyone is busy chatting with their old friends as well ` +
+                    `as making new acquaintances.`,
         wait1: `You wait around awkwardly for orientation to start.  Ten minutes pass but it shows no sign of starting.`,
-        wait2: `You resolutely refuse to make eye contact with anyone.  Finally, you hear Mr. Manning telling everyone
-                to quiet down, and you anxiously await to hear what he has to tell you.`,
-        friends1: `You decide to try your luck with making new friends.  Before long, you meet %friend%, and soon it's
-                   like you two have been friends for life.`,
-        friends2: `Before you know it, Mr. Manning is telling everyone to quiet down, and you anxiously await to
-                   hear what he has to tell you.`,
+        wait2: `You resolutely refuse to make eye contact with anyone.  Finally, you hear Mr. Manning telling everyone ` +
+               `to quiet down, and you anxiously await to hear what he has to tell you.`,
+        friends1: `You decide to try your luck with making new friends.  Before long, you meet %friend%, and soon it's ` +
+                  `like you two have been friends for life.`,
+        friends2: `Before you know it, Mr. Manning is telling everyone to quiet down, and you anxiously await to ` +
+                  `hear what he has to tell you.`,
         end: `Thanks for playing, and stay tuned for Chapter 2!`,
     };
 
