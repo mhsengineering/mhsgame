@@ -34,19 +34,6 @@
     /**********
      * Locale *
      **********/
-
-    // The locale object contains all the text that will be printed. The object
-    // is called "locale" because it can easily be replaced with other locales for
-    // different languages. For instance, we could consider this locale "en_US"
-    // and create another locale "es" for spanish. Ideally, each locale could be
-    // stored in seperate files.
-    // Make sure this variable only contains strings, or things that could easily
-    // represented as strings. Although it may be tempting to do something like this:
-    //    var locale = { count: (i) => `You have ${i} items!` }
-    // The function, count, cannot be easily stored as a string. If you want to do
-    // substitution, you're better off doing
-    //    var locale = { count: "You have %items% items!" }
-    // and replacing items.
     var locale = {
         unknown: "Unable to process command!",
         start: `# Chapter 1
@@ -55,26 +42,24 @@
         atrium: `Mr. Manning, the principal, is busy greeting everyone and telling them to go to the
                     auditorium for orientation.`,
         greet: `>Why hello there!  Welome to Morristown High School!  What's your name?`,
-        reaponse: `Nice to meet you, %name%.  I hope you enjoy MHS.  Now why don't you head to the auditorium
+        response: `Nice to meet you, %name%.  I hope you enjoy MHS.  Now why don't you head to the auditorium
                    for orientation?  It'll be starting soon.`,
+        introduced: `You've already introduced yourself to Mr. Manning.  There's no point doing so again.`,
         auditorium: `You enter the auditorium, where everyone is busy chatting with their old friends as well
                      as making new acquaintances.`,
-        wait: `You wait around awkwardly for orientation to start.  Ten minutes pass but it shows no sign of starting.`,
-        friends: `You decide to try your luck with making new friends.  Before long, you meet %friend%, and soon it's
+        wait1: `You wait around awkwardly for orientation to start.  Ten minutes pass but it shows no sign of starting.`,
+        wait2: `You resolutely refuse to make eye contact with anyone.  Finally, you hear Mr. Manning telling everyone
+                to quiet down, and you anxiously await to hear what he has to tell you.`,
+        friends1: `You decide to try your luck with making new friends.  Before long, you meet %friend%, and soon it's
                   like you two have been friends for life.`,
-        orientation: `Before you know it, Mr. Manning is telling everyone to quiet down, and you anxiously await to
+        friends2: `Before you know it, Mr. Manning is telling everyone to quiet down, and you anxiously await to
                       hear what he has to tell you.`,
-        // It's Okay to nest objects and arrays within locale.
-        gameend: `Stay tuned for Chapter 2!`,
+        end: `Thanks for playing, and stay tuned for Chapter 2!`,
     };
 
     /********************
      * Helper Functions *
      ********************/
-
-    // When the user hits ENTER after typing a command your story will be passed
-    // the raw value of the textbox, including spaces. This simply processes the
-    // command into a more processable form.
     function procCmd(cmd) {
         return cmd.trim().split(" ");
     }
@@ -82,104 +67,130 @@
     /**************
      * Chapter01 *
      **************/
-
-    // A Chapter01 instance is created when the user starts the game. ALL game
-    // state should be stored in your game's class. DO NOT use cookies, localStorage
-    // global variable, or other state that is persistent between games.
     function Chapter01(game) {
         this.game = game;
         this.section = 0;
 
-        // Attach methods passed by game to the Chapter01 object for convienence.
-        // This could also be done with prototypes.
         this.tell = game.tell.bind(null);
         this.sanitize = game.sanitize.bind(null);
         this.setMap = game.map.bind(null);
 
-        // The story is split into sections for easier organization. Variables
-        // specific for each section are put here.
-        // SEC_GUESS
-        this.guess_ans = 9;
-        this.guess_tries = 1;
-        // SEC_END
-        this.end_reply = 0;
+        // SECTION_GREET
+        this.introduced = false;
     }
     Chapter01.prototype.respond = function (command) {
         var cmd = procCmd(command);
 
         // Before we do anything make sure the command is valid.
         if ( cmd.length < 1 ) {
-            // Note how we only call tell with strings defined in locale
-            this.tell(locale.cantproc);
+            this.tell(locale.unknown);
             return;
         }
 
-        // Do section-specific actions
-
-        if ( this.section == this.SEC_START ) {
-            this.tell(locale.welc);
-            this.section = this.SEC_RIDDLE;
-            return; // If we don't return the if will fall through and another
-                    // section will execute before we're ready.
+        if ( this.section == this.SECTION_START ) {
+            this.tell(locale.start);
+            this.section = this.SECTION_ATRIUM;
+            return;
         }
 
-        if ( this.section == this.SEC_RIDDLE ) {
-            if ( locale.ridans.test(cmd[0]) ) {
-                this.tell(locale.ridcorrect);
-                this.section = this.SEC_GUESS;
+        if ( this.section == this.SECTION_ATRIUM ) {
+            if ( cmd[0] == "enter" || cmd[0] == "go to" ) {
+                if ( cmd[1] == "atrium" ) {
+                    this.tell(locale.atrium);
+                    this.section = SECTION_GREET;
+                }
+                /* TODO: Handle other places */
             } else {
-                this.tell(locale.ridwrong);
+                this.tell(locale.unknown);
             }
             return;
         }
 
-        if ( this.section == this.SEC_GUESS ) {
-            var g = parseInt(cmd[0],10);
-            if (isNaN(g)) {
-                this.tell(locale.cantproc);
-                return;
+        if ( this.section == this.SECTION_GREET ) {
+            if ( cmd[0] == "enter" || cmd[0] == "go to" ) {
+                if ( cmd[1] == "auditorium" ) {
+                    this.tell(locale.auditorium);
+                    this.section = SECTION_AUDITORIUM;
+                }
+            } else if ( cmd[0] == "talk to" || cmd[0] == "greet" ) {
+                if ( this.introduced ) {
+                    this.tell(locale.introduced);
+                } else if ( cmd[1] == "Mr. Manning" ) {
+                    this.tell(locale.greet);
+                    this.section = SECTION_RESPONSE;
+                }
+            } else {
+                this.tell(locale.unknown);
             }
-
-            if ( g < 0 || g > 10 ) {
-                this.tell(locale.guessrange);
-                return;
-            }
-            if ( g < this.guess_ans ) {
-                this.tell(locale.guesslow);
-                this.guess_tries++;
-                return;
-            }
-            if ( g > this.guess_ans ) {
-                this.tell(locale.guesshigh);
-                this.guess_tries++;
-                return;
-            }
-
-            this.tell(
-                locale.guesscorrect.replace("%tries%",this.guess_tries.toString(10))
-                );
-            this.section = this.SEC_END;
-
             return;
         }
 
-        if ( this.section == this.SEC_END ) {
-            this.tell(locale.gameend[this.end_reply]);
-            if ( this.end_reply < locale.gameend.length-1 ) {
-                this.end_reply++;
+        if ( this.section == this.SECTION_RESPONSE ) {
+            this.tell(locale.response.replace("%name%",cmd[0]));
+            this.section = this.SECTION_GREET;
+            this.introduced = true;
+            return;
+        }
+
+        if ( this.section == this.SECTION_AUDITORIUM ) {
+            this.tell(locale.auditorium);
+            this.section = this.SECTION_DECISION;
+            return;
+        }
+
+        if ( this.section == this.SECTION_DECISION ) {
+            if ( cmd[0] == "wait" ) {
+                this.tell(locale.wait1);
+                this.section = this.SECTION_WAIT;
+            } else if ( cmd[0] == "make friends" ) {
+                this.tell(locale.friends1);
+                this.section = this.SECTION_FRIENDS;
             }
+            else {
+                this.tell(locale.unknown);
+            }
+            return;
+        }
+
+        if (this.section == this.SECTION_WAIT ) {
+            if ( cmd[0] == "wait" || cmd[0] == "keep waiting" ) {
+                this.tell(locale.wait2);
+                this.section = this.SECTION_END;
+            } else if ( cmd[0] == "make friends" || cmd[0] == "stop waiting" ) {
+                this.tell(locale.friends1);
+                this.section = this.SECTION_FRIENDS;
+            } else {
+                this.tell(locale.unknown);
+            }
+            return;
+        }
+
+        if (this.section == this.SECTION_FRIENDS ) {
+            this.tell(locale.friends2);
+            this.section = this.SECTION_END;
+            return;
+        }
+
+        if ( this.section == this.SECTION_END ) {
+            this.tell(locale.end);
+            return;
         }
     }
-    // Each section has a number assosiated with it.
-    Chapter01.prototype.SEC_START  = 0;
-    Chapter01.prototype.SEC_RIDDLE = 1;
-    Chapter01.prototype.SEC_GUESS  = 2;
-    Chapter01.prototype.SEC_END    = 3;
+
+    Chapter01.prototype.SECTION_START      = 0;
+    Chapter01.prototype.SECTION_ATRIUM     = 1;
+    Chapter01.prototype.SECTION_GREET      = 2;
+    Chapter01.prototype.SECTION_RESPONSE   = 3;
+    Chapter01.prototype.SECTION_AUDITORIUM = 4;
+    Chapter01.prototype.SECTION_DECISION   = 5;
+    Chapter01.prototype.SECTION_WAIT       = 6;
+    Chapter01.prototype.SECTION_FRIENDS    = 7;
+    Chapter01.prototype.SECTION_END        = 8;
 
     /* global mhsgame */
     mhsgame.registerStory({
-        name: "chapter01", // Name should be short and lowercase
-        description: "A template for creating your own games",
+        name: "chapter01",
+        description: "Your adventure starts here.",
     }, function (command, game) {
         if ( command == "_start" ) {
             // Reset Game
