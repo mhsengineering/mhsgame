@@ -74,7 +74,6 @@
         this.section = 0;
 
         this.tell = game.tell.bind(null);
-        this.sanitize = game.sanitize.bind(null);
         this.setMap = game.map.bind(null);
 
         // SECTION_GREET
