@@ -129,7 +129,7 @@
         }
 
         if ( this.section == this.SECTION_RESPONSE ) {
-            this.tell(locale.response.replace("%name%",command));
+            this.tell(locale.response.replace("%name%",command.trim()));
             this.section = this.SECTION_GREET;
             this.introduced = true;
             return;
