@@ -58,10 +58,6 @@
     /********************
      * Helper Functions *
      ********************/
-    function procCmd(cmd) {
-        return cmd.trim().toLocaleLowerCase().split(" ");
-    }
-
     function startsWith(text) {
         return command.trim().toLocaleLowerCase().startsWith(text);
     }
@@ -86,10 +82,8 @@
     }
 
     Chapter01.prototype.respond = function (command) {
-        var cmd = procCmd(command);
-
         // Before we do anything make sure the command is valid.
-        if ( cmd.length < 1 ) {
+        if ( command.trim.split(" ").length < 1 ) {
             this.tell(locale.unknown);
             return;
         }
@@ -101,7 +95,7 @@
         }
 
         if ( this.section == this.SECTION_ATRIUM ) {
-            if ( cmd[0] == "enter" || startsWith("go to") ) {
+            if ( startsWith("enter") || startsWith("go to") ) {
                 if ( endsWith("atrium") ) {
                     this.tell(locale.atrium);
                     this.section = this.SECTION_GREET;
@@ -114,7 +108,7 @@
         }
 
         if ( this.section == this.SECTION_GREET ) {
-            if ( cmd[0] == "enter" || startsWith("go to") ) {
+            if ( startsWith("enter") || startsWith("go to") ) {
                 if ( endsWith("auditorium") ) {
                     this.tell(locale.auditorium);
                     this.section = this.SECTION_AUDITORIUM;
@@ -146,7 +140,7 @@
         }
 
         if ( this.section == this.SECTION_DECISION ) {
-            if ( cmd[0] == "wait" ) {
+            if ( startsWith("wait") ) {
                 this.tell(locale.wait1);
                 this.section = this.SECTION_WAIT;
             } else if ( startsWith("make friends") ) {
@@ -160,7 +154,7 @@
         }
 
         if (this.section == this.SECTION_WAIT ) {
-            if ( cmd[0] == "wait" || startsWith("keep waiting") ) {
+            if ( startsWith("wait") || startsWith("keep waiting") ) {
                 this.tell(locale.wait2);
                 this.section = this.SECTION_END;
             } else if ( startsWith("make friends") || startsWith("stop waiting") ) {
