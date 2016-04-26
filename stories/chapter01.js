@@ -10,7 +10,7 @@
      *****************/
     var cGame = null;
 
-    var getMap = (i) => `
+    var getMap = (x,y) => `
     <path d="` +
       /* Cafeteria */
       `M 50 100 L 0 100 L 0 0 L 80 0 L 80 20`+
@@ -29,7 +29,10 @@
     </text>
     <text x="190" y="10" font-size="20" transform="rotate(90 190 10)">
     Classroom
-    </text>`;
+    </text>
+
+    <circle cx="${x}" cy="${y}" r="10" fill="#00BFFF" />
+    <text x="${x-11}" y="${y+19}" font-size="13">You</text>`;
 
     /**********
      * Locale *
