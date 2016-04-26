@@ -13,27 +13,24 @@
 
     var getMap = (x,y) => `
     <path d="` +
-      /* Cafeteria */
-      `M 50 100 L 0 100 L 0 0 L 80 0 L 80 20`+
-      /* Atrium */
-      `M 100 120 L 50 120 L 50 80 M 50 70 L 50 20
-      L 170 20 L 170 50 M 170 60 L 170 120 L 135 120`+
-      /* Classroom */
-      `M 160 20 L 160 0 L 240 0 L 240 100 L 170 100
+      /* Auditorium */
+      `M 100 100 L 0 100 L 0 0 L 100 0 L 100 50 M 100 80 L 100 101.5`+
+      /* Hallway */
+      `M 126.5 50 L 98.5 50 M 126.5 80 L 98.5 80`+
+      /* Main Atrium */
+      `M 175 120 L 125 120 L 125 80 M 125 50 L 125 20
+      L 245 20 L 245 120 L 205 120
     " stroke="#000" stroke-width="3" fill="none" />
 
-    <text x="18" y="80" font-size="20" transform="rotate(270 18 80)">
-    Cafeteria
+    <text x="5" y="70" font-size="20">
+    Auditorium
     </text>
-    <text x="70" y="70" font-size="20">
-    Atrium
-    </text>
-    <text x="190" y="10" font-size="20" transform="rotate(90 190 10)">
-    Classroom
+    <text x="133" y="70" font-size="20">
+    Main Atrium
     </text>
 
     <circle cx="${x}" cy="${y}" r="10" fill="#00BFFF" />
-    <text x="${x-11}" y="${y+19}" font-size="13">You</text>`;
+    <text x="${x-11}" y="${y+20}" font-size="13">You</text>`;
 
     /**********
      * Locale *
@@ -94,6 +91,7 @@
         if ( this.section == this.SECTION_START ) {
             this.tell(locale.start);
             this.section = this.SECTION_ATRIUM;
+            this.setMap(getMap(190,180));
             return;
         }
 
