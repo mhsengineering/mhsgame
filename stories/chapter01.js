@@ -59,7 +59,15 @@
      * Helper Functions *
      ********************/
     function procCmd(cmd) {
-        return cmd.trim().split(" ");
+        return cmd.trim().toLocaleLowerCase().split(" ");
+    }
+
+    function startsWith(text) {
+        return command.trim().toLocaleLowerCase().startsWith(text);
+    }
+
+    function endsWith(text) {
+        return command.trim().toLocaleLowerCase().endsWith(text);
     }
 
     /**************
@@ -93,8 +101,8 @@
         }
 
         if ( this.section == this.SECTION_ATRIUM ) {
-            if ( cmd[0] == "enter" || cmd[0] == "go to" ) {
-                if ( cmd[1] == "atrium" ) {
+            if ( cmd[0] == "enter" || startsWith("go to") ) {
+                if ( endsWith("atrium") ) {
                     this.tell(locale.atrium);
                     this.section = this.SECTION_GREET;
                 }
@@ -106,15 +114,15 @@
         }
 
         if ( this.section == this.SECTION_GREET ) {
-            if ( cmd[0] == "enter" || cmd[0] == "go to" ) {
-                if ( cmd[1] == "auditorium" ) {
+            if ( cmd[0] == "enter" || startsWith("go to") ) {
+                if ( endsWith("auditorium") ) {
                     this.tell(locale.auditorium);
                     this.section = this.SECTION_AUDITORIUM;
                 }
-            } else if ( cmd[0] == "talk to" || cmd[0] == "greet" ) {
+            } else if ( startsWith("talk to") || startsWith("greet") ) {
                 if ( this.introduced ) {
                     this.tell(locale.introduced);
-                } else if ( cmd[1] == "Mr. Manning" ) {
+                } else if ( endsWith("mr. manning") ) {
                     this.tell(locale.greet);
                     this.section = this.SECTION_RESPONSE;
                 }
@@ -141,7 +149,7 @@
             if ( cmd[0] == "wait" ) {
                 this.tell(locale.wait1);
                 this.section = this.SECTION_WAIT;
-            } else if ( cmd[0] == "make friends" ) {
+            } else if ( startsWith("make friends") ) {
                 this.tell(locale.friends1);
                 this.section = this.SECTION_FRIENDS;
             }
@@ -152,10 +160,10 @@
         }
 
         if (this.section == this.SECTION_WAIT ) {
-            if ( cmd[0] == "wait" || cmd[0] == "keep waiting" ) {
+            if ( cmd[0] == "wait" || startsWith("keep waiting") ) {
                 this.tell(locale.wait2);
                 this.section = this.SECTION_END;
-            } else if ( cmd[0] == "make friends" || cmd[0] == "stop waiting" ) {
+            } else if ( startsWith("make friends") || startsWith("stop waiting") ) {
                 this.tell(locale.friends1);
                 this.section = this.SECTION_FRIENDS;
             } else {
