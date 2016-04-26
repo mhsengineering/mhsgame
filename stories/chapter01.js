@@ -9,6 +9,7 @@
      * Game instance *
      *****************/
     var cGame = null;
+    var command = null;
 
     var getMap = (x,y) => `
     <path d="` +
@@ -112,7 +113,6 @@
         if ( this.section == this.SECTION_GREET ) {
             if ( startsWith("enter") || startsWith("go to") ) {
                 if ( endsWith("auditorium") ) {
-                    this.tell(locale.auditorium);
                     this.section = this.SECTION_AUDITORIUM;
                 }
             } else if ( startsWith("talk to") || startsWith("greet") ) {
@@ -194,8 +194,9 @@
     mhsgame.registerStory({
         name: "chapter01",
         description: "Your adventure starts here.",
-    }, function (command, game) {
-        if ( command == "_start" ) {
+    }, function (cmd, game) {
+        command = cmd;  //Globalize it for helper functions
+        if ( cmd == "_start" ) {
             // Reset Game
             cGame = new Chapter01(game);
         }
