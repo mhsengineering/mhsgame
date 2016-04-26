@@ -85,7 +85,7 @@
 
     Chapter01.prototype.respond = function (command) {
         // Before we do anything make sure the command is valid.
-        if ( command.trim.split(" ").length < 1 ) {
+        if ( command.trim().split(" ").length < 1 ) {
             this.tell(locale.unknown);
             return;
         }
