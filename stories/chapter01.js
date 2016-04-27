@@ -100,6 +100,7 @@
                 if ( endsWith("atrium") ) {
                     this.tell(locale.atrium);
                     this.section = this.SECTION_GREET;
+                    this.setMap(getMap(190, 90));
                 }
                 /* TODO: Handle other places */
             } else {
@@ -111,7 +112,9 @@
         if ( this.section == this.SECTION_GREET ) {
             if ( startsWith("enter") || startsWith("go to") ) {
                 if ( endsWith("auditorium") ) {
+                    this.tell(locale.auditorium);
                     this.section = this.SECTION_AUDITORIUM;
+                    this.setMap(getMap(50, 30));
                 }
             } else if ( startsWith("talk to") || startsWith("greet") ) {
                 if ( this.introduced ) {
@@ -134,12 +137,6 @@
         }
 
         if ( this.section == this.SECTION_AUDITORIUM ) {
-            this.tell(locale.auditorium);
-            this.section = this.SECTION_DECISION;
-            return;
-        }
-
-        if ( this.section == this.SECTION_DECISION ) {
             if ( startsWith("wait") ) {
                 this.tell(locale.wait1);
                 this.section = this.SECTION_WAIT;
@@ -183,10 +180,9 @@
     Chapter01.prototype.SECTION_GREET      = 2;
     Chapter01.prototype.SECTION_RESPONSE   = 3;
     Chapter01.prototype.SECTION_AUDITORIUM = 4;
-    Chapter01.prototype.SECTION_DECISION   = 5;
-    Chapter01.prototype.SECTION_WAIT       = 6;
-    Chapter01.prototype.SECTION_FRIENDS    = 7;
-    Chapter01.prototype.SECTION_END        = 8;
+    Chapter01.prototype.SECTION_WAIT       = 5;
+    Chapter01.prototype.SECTION_FRIENDS    = 6;
+    Chapter01.prototype.SECTION_END        = 7;
 
     /* global mhsgame */
     mhsgame.registerStory({
