@@ -120,6 +120,12 @@
             return;
         }
 
+        // Settings
+        if ( command == "_settings" ) {
+            this.tell("No settings available");
+            return;
+        }
+
         if ( this.section == this.SECTION_START ) {
             this.tell(locale.start);
             this.section = this.SECTION_ATRIUM;
