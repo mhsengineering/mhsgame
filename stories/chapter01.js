@@ -36,19 +36,24 @@
      * Locale *
      **********/
     var locale = {
-        unknown: "Unable to process command!",
+        unknown: `Unable to process command!`,
+        noaccess: `You can't get to the auditorium from here!`
         start: `# Chapter 1\n\nIt's the first day of school, and you've just been dropped off outside the main atrium.`,
+        noescape1: `You attempt to leave but the police officer makes you turn back around.`,
         atrium: `Mr. Manning, the principal, is busy greeting everyone and telling them to go to the ` +
                 `auditorium for orientation.`,
+        noescape2: `You attempt to go back outside but there's simply too many people streaming through the entrance.`,
         greet: `>Why hello there!  Welome to Morristown High School!  What's your name?`,
         response: `Nice to meet you, %name%.  I hope you enjoy MHS.  Now why don't you head to the auditorium` +
                   `for orientation?  It'll be starting soon.`,
         introduced: `You've already introduced yourself to Mr. Manning.  There's no point doing so again.`,
         auditorium: `You enter the auditorium, where everyone is busy chatting with their old friends as well ` +
                     `as making new acquaintances.`,
+        noescape3: `You attempt to leave but the security guards intimidate you into sitting back down.`,
         wait1: `You wait around awkwardly for orientation to start.  Ten minutes pass but it shows no sign of starting.`,
         wait2: `You resolutely refuse to make eye contact with anyone.  Finally, you hear Mr. Manning telling everyone ` +
                `to quiet down, and you anxiously await to hear what he has to tell you.`,
+        chat: `You manage to find one of your friends from the middle school and discuss each other's vacations.`,
         friends1: `You decide to try your luck with making new friends.  Before long, you're talking to someone as if ` +
                   `you two have been friends for life.`,
         friends2: `Before you know it, Mr. Manning is telling everyone to quiet down, and you anxiously await to ` +
@@ -101,8 +106,13 @@
                     this.tell(locale.atrium);
                     this.section = this.SECTION_GREET;
                     this.setMap(getMap(190, 90));
+                } else if (endsWith("auditorium")) {
+                    this.tell(locale.noaccess);
+                } else {
+                    this.tell(locale.unknown);
                 }
-                /* TODO: Handle other places */
+            } else if (startsWith("leave") ) {
+                this.tell(locale.noescape1);
             } else {
                 this.tell(locale.unknown);
             }
@@ -111,7 +121,7 @@
 
         if ( this.section == this.SECTION_GREET ) {
             if ( startsWith("enter") || startsWith("go to") ) {
-                if ( endsWith("auditorium") ) {
+                if ( endsWith("auditorium") || endsWith("orientation")) {
                     this.tell(locale.auditorium);
                     this.section = this.SECTION_AUDITORIUM;
                     this.setMap(getMap(50, 30));
@@ -119,10 +129,12 @@
             } else if ( startsWith("talk to") || startsWith("greet") ) {
                 if ( this.introduced ) {
                     this.tell(locale.introduced);
-                } else if ( endsWith("mr. manning") ) {
+                } else if ( endsWith("mr. manning") || endsWith("mr manning") || endsWith("manning") || endsWith("principal") ) {
                     this.tell(locale.greet);
                     this.section = this.SECTION_RESPONSE;
                 }
+            } else if (startsWith("leave") || startsWith("go outside") ) {
+                this.tell(locale.noescape2);
             } else {
                 this.tell(locale.unknown);
             }
@@ -143,8 +155,12 @@
             } else if ( startsWith("make friends") ) {
                 this.tell(locale.friends1);
                 this.section = this.SECTION_FRIENDS;
-            }
-            else {
+            } else if ( startsWith("chat") ) {
+                this.tell(locale.chat);
+                this.section = THIS.SECTION_FRIENDS;
+            } else if ( startsWith("leave") || startsWith("go to") ) {
+                this.tell(locale.noaccess3);
+            } else {
                 this.tell(locale.unknown);
             }
             return;
