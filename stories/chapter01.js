@@ -37,14 +37,14 @@
      **********/
     var locale = {
         unknown: `Unable to process command!`,
-        noaccess: `You can't get to the auditorium from here!`
+        noaccess: `You can't get to the auditorium from here!`,
         start: `# Chapter 1\n\nIt's the first day of school, and you've just been dropped off outside the main atrium.`,
         noescape1: `You attempt to leave but the police officer makes you turn back around.`,
         atrium: `Mr. Manning, the principal, is busy greeting everyone and telling them to go to the ` +
                 `auditorium for orientation.`,
         noescape2: `You attempt to go back outside but there's simply too many people streaming through the entrance.`,
         greet: `>Why hello there!  Welome to Morristown High School!  What's your name?`,
-        response: `Nice to meet you, %name%.  I hope you enjoy MHS.  Now why don't you head to the auditorium` +
+        response: `>Nice to meet you, %name%.  I hope you enjoy MHS.  Now why don't you head to the auditorium ` +
                   `for orientation?  It'll be starting soon.`,
         introduced: `You've already introduced yourself to Mr. Manning.  There's no point doing so again.`,
         auditorium: `You enter the auditorium, where everyone is busy chatting with their old friends as well ` +
@@ -93,6 +93,33 @@
             return;
         }
 
+        // Suggest some commands
+        if ( command == "_suggest" ) {
+            switch ( this.section ) {
+                case this.SECTION_ATRIUM: {
+                    this.tell("*enter, go to*");
+                    break;
+                }
+                case this.SECTION_GREET: {
+                    this.tell("*enter, go to, talk to, chat with, greet*");
+                    break;
+                }
+                case this.SECTION_AUDITORIUM: {
+                    this.tell("*wait, make friends, chat*");
+                    break;
+                }
+                case this.SECTION_WAIT: {
+                    this.tell("*wait, keep waiting, make friends, stop waiting*");
+                    break;
+                }
+                default: {
+                    this.tell("No commands available");
+                    break;
+                }
+            }
+            return;
+        }
+
         if ( this.section == this.SECTION_START ) {
             this.tell(locale.start);
             this.section = this.SECTION_ATRIUM;
@@ -126,7 +153,7 @@
                     this.section = this.SECTION_AUDITORIUM;
                     this.setMap(getMap(50, 30));
                 }
-            } else if ( startsWith("talk to") || startsWith("greet") ) {
+            } else if ( startsWith("talk to") || startsWith("chat with") || startsWith("greet") ) {
                 if ( this.introduced ) {
                     this.tell(locale.introduced);
                 } else if ( endsWith("mr. manning") || endsWith("mr manning") || endsWith("manning") || endsWith("principal") ) {
@@ -157,7 +184,7 @@
                 this.section = this.SECTION_FRIENDS;
             } else if ( startsWith("chat") ) {
                 this.tell(locale.chat);
-                this.section = THIS.SECTION_FRIENDS;
+                this.section = this.SECTION_FRIENDS;
             } else if ( startsWith("leave") || startsWith("go to") ) {
                 this.tell(locale.noaccess3);
             } else {
@@ -205,7 +232,7 @@
         name: "chapter01",
         description: "Your adventure starts here.",
     }, function (cmd, game) {
-        command = cmd;  //Globalize it for helper functions
+        command = cmd;  //Globalize for helper functions
         if ( cmd == "_start" ) {
             // Reset Game
             cGame = new Chapter01(game);
