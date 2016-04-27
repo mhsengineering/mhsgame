@@ -10,8 +10,7 @@ window.mhsgame = (function () {
      * Global Variables *
      ********************/
 
-    var cm_writer = new commonmark.HtmlRenderer();
-    var cm_reader = new commonmark.Parser();
+    var mrender = null; // Set up on initialization
 
     var ls_commands = [];
     var ls_stories = [];
@@ -46,12 +45,25 @@ window.mhsgame = (function () {
     }
 
     function addMessage( md ) {
-        var para = document.createElement("div");
-        var parsed = cm_reader.parse( md );
-        var render = cm_writer.render( parsed );
-        para.classList.add("message");
-        para.innerHTML = render;
-        $("#log").append(para);
+        // First, we create a div to hold our message
+        var holder = document.createElement("div");
+        holder.classList.add("message");
+        // Then we will parse the markdown to html
+        var prehtml = marked(md, {
+            renderer: mrender,
+        });
+        // Markdown allows raw html,so we need to make sure the html will
+        // not mess with our formatting. This additional sanitization step
+        // isn't as much about security, as preventing hard-to-catch errors.
+        var pure = DOMPurify.sanitize(prehtml, {
+            ALLOW_UNKNOWN_PROTOCOLS: true,
+            RETURN_DOM_FRAGMENT: true,
+            RETURN_DOM_IMPORT: true,
+            KEEP_CONTENT: false,
+        });
+        // Now add it to the document
+        holder.appendChild( pure );
+        $("#log").append(holder);
     }
 
     function sanitizeMd( text ) {
@@ -150,6 +162,19 @@ window.mhsgame = (function () {
     }
 
     function init() {
+        // Build renderer
+        mrender = new marked.Renderer();
+        mrender.link = function (href, title, text) {
+            var link = document.createElement("a");
+            var tnode = document.createTextNode(text)
+            
+            link.setAttribute("href",href);
+            link.setAttribute("title",title);
+            
+            link.appendChild(tnode);
+            return link.outerHTML;
+        }
+        
         // Register Element Events
         $("#settings").on("click", handleOpenSettings);
         $("#cmdent").on("keydown", handleKeyPress);
