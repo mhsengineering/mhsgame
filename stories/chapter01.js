@@ -38,6 +38,7 @@
     var locale = {
         unknown: `Unable to process command!`,
         noaccess: `You can't get to the auditorium from here!`,
+        continue: `Enter anything to continue`,
         start: `# Chapter 1\n\nIt's the first day of school, and you've just been dropped off outside the main atrium.`,
         noescape1: `You attempt to leave but the police officer makes you turn back around.`,
         atrium: `Mr. Manning, the principal, is busy greeting everyone and telling them to go to the ` +
@@ -202,9 +203,11 @@
         if (this.section == this.SECTION_WAIT ) {
             if ( startsWith("wait") || startsWith("keep waiting") ) {
                 this.tell(locale.wait2);
+                this.tell(locale.continue);
                 this.section = this.SECTION_END;
             } else if ( startsWith("make friends") || startsWith("stop waiting") ) {
                 this.tell(locale.friends1);
+                this.tell(locale.continue);
                 this.section = this.SECTION_FRIENDS;
             } else {
                 this.tell(locale.unknown);
@@ -214,6 +217,7 @@
 
         if (this.section == this.SECTION_FRIENDS ) {
             this.tell(locale.friends2);
+            this.tell(locale.continue);
             this.section = this.SECTION_END;
             return;
         }
