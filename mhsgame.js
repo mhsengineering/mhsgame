@@ -17,6 +17,8 @@ window.mhsgame = (function () {
 
     var cur_story = null;
 
+    var lastmessage = -1;
+
     /*************
      * Functions *
      *************/
@@ -45,9 +47,12 @@ window.mhsgame = (function () {
     }
 
     function addMessage( md ) {
+        // Calculate the message id
+        var msgid = (++lastmessage);
         // First, we create a div to hold our message
         var holder = document.createElement("div");
         holder.classList.add("message");
+        holder.setAttribute("msgid", msgid.toString(16));
         // Then we will parse the markdown to html
         var prehtml = marked(md, {
             renderer: mrender,
@@ -61,9 +66,27 @@ window.mhsgame = (function () {
             RETURN_DOM_IMPORT: true,
             KEEP_CONTENT: false,
         });
+        // We need to add event handlers to all the links, to detect if we
+        // need to send a command. See init for explanation.
+        var links = Array.prototype.map.call(
+                pure.querySelectorAll("a"), x => x
+                )
+        for ( link of links ) {
+            link.addEventListener("click", function (e) {
+                var cmd = this.getAttribute("data-cmd");
+                var frommsg = parseInt(this.getAttribute("data-frommsg"),16);
+                var msgdiff = lastmessage - frommsg;
+                if ( cmd ) {
+                    e.preventDefault();
+                    execCommand(["_link",cmd,msgdiff.toString(16)].join(" "));
+                }
+            });
+        }
         // Now add it to the document
         holder.appendChild( pure );
         $("#log").append(holder);
+        // Reset the console
+        resetConsole();
     }
 
     function sanitizeMd( text ) {
@@ -165,11 +188,28 @@ window.mhsgame = (function () {
         // Build renderer
         mrender = new marked.Renderer();
         mrender.link = function (href, title, text) {
+            // We override the link rendering so we can create custom links
+            // that have the ability to send commands. These special commands
+            // have the form of
+            //     [Give $5](#GIVE5)
+            // where GIVE5 can be any case-sensitive combination of letters and
+            // numbers. When a user clicks on the link, the story will recieve
+            // the command
+            //     _link #GIVE5 0
+            // where 0 indicates the link was clicked on the last sent message.
+            var trim = href.trim();
             var link = document.createElement("a");
-            var tnode = document.createTextNode(text)
+            var tnode = document.createTextNode(text);
             
-            link.setAttribute("href",href);
-            link.setAttribute("title",title);
+            if ( title )
+                link.setAttribute("title",title);
+            if ( (/^#[A-Za-z0-9]*$/).test(trim) ) {
+                link.setAttribute("href",trim);
+                link.setAttribute("data-cmd", trim);
+                link.setAttribute("data-frommsg", lastmessage.toString(16));
+            } else {
+                link.setAttribute("href",href);
+            }
             
             link.appendChild(tnode);
             return link.outerHTML;
