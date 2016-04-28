@@ -173,6 +173,10 @@ body * {
  * Markdown *
  ************/
 
+.message p {
+    margin: 5px 10px;
+}
+
 .message h1 {
     font-size: 20px;
     font-weight; 700;

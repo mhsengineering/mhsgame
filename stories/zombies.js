@@ -8,6 +8,8 @@
  */
 
 (function () {
+    "use strict";
+
     /*****************
      * Game instance *
      *****************/
@@ -106,7 +108,7 @@ stroke-linejoin="miter" fill="none" />
         // border will have a 5 pixel margin withing its 50x50 block of pixels.
         // Hallways are drawn when drawing doors on the southern and western
         // rooms.
-        var x, y, r;
+        var x, y, r, i;
         for ( i in rooms ) {
             x = i%5; y = Math.floor(i/5);
             r = rooms[i];
@@ -183,6 +185,19 @@ stroke-linejoin="miter" fill="none" />
 
         this.startclosed = false;
     }
+    RoomManager.prototype.dirName = function (dir) {
+        switch (dir) {
+            case DIR_NORTH:
+                return "North";
+            case DIR_SOUTH:
+                return "South";
+            case DIR_EAST:
+                return "East";
+            case DIR_WEST:
+                return "West";
+        }
+        throw new Error("Bad Direction");
+    }
     RoomManager.prototype.getMap = function (x,y) {
         return maptemplate({
             roompath,x,y
@@ -194,6 +209,56 @@ stroke-linejoin="miter" fill="none" />
             `<rect width="10" height="10" x="50" y="20" />`
         );
     }
+    RoomManager.prototype.doorExists = function (x, y, dir) {
+        if ( x > 4 || x < 0 || y > 4 || y < 0 )
+            throw new Error("Bad Coords");
+        var room = rooms[ y*5 + x ];
+
+        var rdir = 0;
+        switch ( dir ) {
+            case DIR_NORTH:
+                rdir = ROOM_DNORTH;
+                break;
+            case DIR_SOUTH:
+                rdir = ROOM_DSOUTH;
+                break;
+            case DIR_EAST:
+                rdir = ROOM_DEAST;
+                break;
+            case DIR_WEST:
+                rdir = ROOM_DWEST;
+                break;
+            default:
+                throw new Error("Bad Direction");
+        }
+
+        return !!( room.w & rdir );
+    }
+    RoomManager.prototype.move = function (dir) {
+        switch ( dir ) {
+            case DIR_NORTH:
+                return [0,-1];
+            case DIR_SOUTH:
+                return [0,1];
+            case DIR_EAST:
+                return [1,0];
+            case DIR_WEST:
+                return [-1,0];
+        }
+        throw new Error("Bad Direction");
+    }
+    RoomManager.prototype.travel = function (x, y, dir) {
+        var [dx, dy] = this.move(dir);
+        return [x+dx,y+dy,!this.doorExists(x,y,dir)];
+    }
+
+    // Map Directions (note these are different than the ones used
+    // to build the map)
+    var DIR_NONE  = 0;
+    var DIR_NORTH = 1;
+    var DIR_SOUTH = 2;
+    var DIR_EAST  = 3;
+    var DIR_WEST  = 4;
 
     /************
      * Monsters *
@@ -236,29 +301,40 @@ Sometimes you feel guilty about leaving all your past friends behind, but then
 you realize you really didn't like those people anyway. You move on without
 guilt.
 
-## How To Win
+## How To Play
 
-The purpose of the game is simple: reach the exit without dying. During your
-journey you will find notes, buy items, kill zombies and score points.
+Control your player by entering commands. There are many different commands that
+can be used. For a full list use the \`help\` command.
 
-If you need help with using commands, use the \`help\` command. If you need
-help with a particular command, use \`help [command]\`. If you need a list
-of commands to try, hit tab while typing in the command box.
-
-## Tips
-
-- You're the blue dot.
-- Notes give you insight into the world, and may provide hints to secrets on
-  the map
-- It may not be necessary to kill every zombie
-- Score is primarily determined by the money you're holding when you finish.
-- There is a finite amount of money on the map.
-- Zombification is contagious.
-- I haven't spellchecked this game yet, so cut me a break
-- It may be necessary to backtrack
-- If you're in the first room, besides looking at your supplies and status,
-  you're only option is to \`go east\`
+There is not enough supplies to survive in The Underground City, so you must
+find an exit.
 `,
+    /*
+     * Player Responses
+     */
+
+    // Player Stats
+    playerstats:
+`
+Your Health: **%health%** / **%maxheal%**\n
+Your Gold: **%gold%**
+`,
+
+    }
+
+    // By using a special function we prevent passing undefined
+    // variables from locale
+    function ltxt(name, fill) {
+        var g = locale[name];
+        var f = fill || {};
+        if ( typeof g != "string" ) {
+            return "["+name+" "+JSON.stringify(f)+"]\n\n";
+        }
+
+        for (var k in fill) {
+            g = g.replace(k, fill[k]);
+        }
+        return g;
     }
 
     /*************************
@@ -268,8 +344,30 @@ of commands to try, hit tab while typing in the command box.
     function NotesManager() {
     }
 
+    // Notes List
+    var NOTES_NONE       = 0;
+    var NOTES_START      = 1;
+    var NOTES_LOVESTORY  = 2;
+    var NOTES_WHATISLIFE = 3;
+    var NOTES_THRIFTSHOP = 4;
+    var NOTES_SECRET1    = 5;
+    var NOTES_SECRET2    = 6;
+    var NOTES_SECRET3    = 7;
+    var NOTES_ORIGINS    = 8;
+
     function InventoryManager() {
+        this.items = {};
     }
+    InventoryManager.prototype.init = function () {
+        this.add();
+    }
+
+    // Item List
+
+    var ITEM_NONE   = 0;
+    var ITEM_AX     = 1;
+    var ITEM_GUN    = 2;
+    var ITEM_POTION = 3;
 
     /********************
      * Helper Functions *
@@ -287,6 +385,7 @@ of commands to try, hit tab while typing in the command box.
         this.game = game;
         this.tell = game.tell.bind(null);
         this.setMap = game.map.bind(null);
+        this.sanitize = game.sanitize.bind(null);
 
         this.rooms = new RoomManager();
         this.monsters = new MonsterManager();
@@ -299,7 +398,7 @@ of commands to try, hit tab while typing in the command box.
         var cmd = procCmd( txt );
 
         if ( cmd.length < 1 ) {
-            this.tell(locale.cmderror);
+            this.tell( ltxt("cmderror") );
         }
 
         // Send command to appropriate response
@@ -321,13 +420,29 @@ of commands to try, hit tab while typing in the command box.
                 this.rAttack( rem );
                 break;
             case "go":
+            case "move":
                 this.rGo( rem );
                 break;
             case "shop":
+            case "store":
                 this.rShop( rem );
                 break;
+            case "stat":
+            case "stats":
+                this.rStats( rem );
+                break;
+            case "notes":
+            case "note":
+                this.rNotes( rem );
+                break;
+            case "inventory":
+            case "inv":
+                this.rInv( rem );
+                break;
             default:
-                this.tell( locale.nounderstand.replace("%cmd%",this.game.sanitize(txt)) );
+                this.tell( ltxt("nounderstand",{
+                    "%cmd%": this.game.sanitize(txt)
+                }) );
         }
 
         // Update the map
@@ -338,35 +453,165 @@ of commands to try, hit tab while typing in the command box.
     // Command Responses
     //
 
+    // Game Start
+
     ZombieGame.prototype.start = function () {
         this.roomx = 0;
         this.roomy = 0;
 
-        this.tell( locale.intro );
+        this.tell( ltxt("intro") );
+
+        // init Player Stats
+        this.pHealth    = 100;
+        this.pMaxHealth = 100;
+        this.pGold      = 50;
     }
+
+    // Settings
 
     ZombieGame.prototype.rSettings = function () {
-        this.tell( locale.nyi );
+        this.tell( ltxt("nosettings") );
     }
+
+    // Command Suggestions
 
     ZombieGame.prototype.rSuggest = function () {
-        this.tell( locale.nyi );
+        this.tell( ltxt("suggest") );
     }
+
+    // Help
 
     ZombieGame.prototype.rHelp = function ( args ) {
-        this.tell( locale.nyi );
+        if ( args.length < 1 ) {
+            this.tell(
+                ltxt("help_header") +
+                ltxt("help_help") +
+                ltxt("help_attack") +
+                ltxt("help_go") +
+                ltxt("help_shop") +
+                ltxt("help_stat") +
+                ltxt("help_notes") +
+                ltxt("help_inventory")
+                );
+        } else {
+            switch ( args[0] ) {
+                case "help":
+                    this.tell( ltxt("help_help") );
+                    return;
+                case "attack":
+                    this.tell( ltxt("help_attack") );
+                    return;
+                case "go":
+                case "move":
+                    this.tell( ltxt("help_go") );
+                    return;
+                case "shop":
+                case "store":
+                    this.tell( ltxt("help_shop") );
+                    return;
+                case "stat":
+                case "stats":
+                    this.tell( ltxt("help_stat") );
+                    return;
+                case "notes":
+                case "note":
+                    this.tell( ltxt("help_notes") );
+                    return;
+                case "inventory":
+                case "inv":
+                    this.tell( ltxt("help_inventory") );
+                    return;
+            }
+            this.rHelp([]);
+        }
     }
+
+    // Combat (attack)
 
     ZombieGame.prototype.rAttack = function ( args ) {
-        this.tell( locale.nyi );
+        this.tell( ltxt("nyi") );
     }
+
+    // Movement
 
     ZombieGame.prototype.rGo = function ( args ) {
+        if ( args.length < 1 ) {
+            this.tell( ltxt("go_where") );
+        }
+        if ( args.length > 1) {
+            this.tell( ltxt("nounderstand") );
+        }
+
+        var dir = DIR_NONE;
+        switch ( args[0] ) {
+            case "north":
+            case "up":
+                dir = DIR_NORTH;
+                break;
+            case "south":
+            case "down":
+                dir = DIR_SOUTH;
+                break;
+            case "east":
+            case "right":
+                dir = DIR_EAST;
+                break;
+            case "west":
+            case "left":
+                dir = DIR_WEST;
+                break;
+        }
+        if ( dir == DIR_NONE ) {
+            this.tell( ltxt("go_baddir", {
+                "%dir%": this.sanitize( args[0] )
+            }) );
+            return;
+        }
+
+        var [newx, newy, noable] = this.rooms.travel(this.roomx, this.roomy, dir);
+        if ( noable ) {
+            this.tell( ltxt("go_notravel", {
+                "%dir%": this.rooms.dirName( dir )
+            }) );
+            return;
+        }
+
+        this.roomx = newx;
+        this.roomy = newy;
+
+        this.tell( ltxt("go_travel",{
+            "%dir%": this.rooms.dirName( dir ),
+        }) );
+    }
+
+    // Shopping (store)
+
+    ZombieGame.prototype.rShop = function ( args ) {
+        this.tell( ltxt("nyi") );
+    }
+
+    // Player Stats
+
+    ZombieGame.prototype.rStats = function ( args ) {
+        this.tell( this.statsMessage() );
+    }
+    ZombieGame.prototype.statsMessage = function () {
+        return ltxt("playerstats", {
+            "%health%": this.pHealth.toString(10),
+            "%maxheal%": this.pMaxHealth.toString(10),
+            "%gold%": this.pGold.toString(10),
+        });
+    }
+
+    // Notes
+
+    ZombieGame.prototype.rNotes = function ( args ) {
         this.tell( locale.nyi );
     }
 
-    ZombieGame.prototype.rShop = function ( args ) {
-        this.tell( locale.nyi );
+    // Inventory Management
+
+    ZombieGame.prototype.rInv = function ( args ) {
     }
 
     /****************

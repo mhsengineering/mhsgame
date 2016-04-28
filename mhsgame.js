@@ -47,6 +47,14 @@ window.mhsgame = (function () {
     }
 
     function addMessage( md ) {
+        // Ensure md is a string (continueing without this check
+        // will lead to weird and difficult to find errors)
+        if ( typeof md != "string" ) {
+            throw new Error(
+                    "Message should be a markdown-formatted string. "+
+                    "Instead got " + (typeof md) + "!"
+                    );
+        }
         // Calculate the message id
         var msgid = (++lastmessage);
         // First, we create a div to hold our message
