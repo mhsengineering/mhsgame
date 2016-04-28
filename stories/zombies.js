@@ -3,6 +3,8 @@
  *
  * The school has become overrun with zombies, and it's
  * your job to stop them.
+ *
+ * WARNING! This file contains spoilers for the game.
  */
 
 (function () {
@@ -78,10 +80,11 @@
     ];
 
     var maptemplate =
-(rpath /*roompath*/) =>
+({roompath, x, y}) =>
 `
-<path d="${rpath}" stroke="#000" stroke-width="3" stroke-linecap="square"
+<path d="${roompath}" stroke="#000" stroke-width="3" stroke-linecap="square"
 stroke-linejoin="miter" fill="none" />
+<circle cx="${x*50+25}" cy="${y*50+25}" r="10" fill="#00BFFF" />
 `;
 
     //
@@ -176,9 +179,20 @@ stroke-linejoin="miter" fill="none" />
     //
 
     function RoomManager() {
+        this.overlays = [];
+
+        this.startclosed = false;
     }
-    RoomManager.prototype.getMap = function () {
-        return maptemplate(roompath);
+    RoomManager.prototype.getMap = function (x,y) {
+        return maptemplate({
+            roompath,x,y
+        }) + this.overlays.join("\n");
+    }
+    RoomManager.prototype.closeStart = function () {
+        this.startclosed = true;
+        this.overlays.push(
+            `<rect width="10" height="10" x="50" y="20" />`
+        );
     }
 
     /************
@@ -188,8 +202,7 @@ stroke-linejoin="miter" fill="none" />
     var monsters = {
     };
 
-    // Manage the state for a particular monster
-    function Monster() {
+    function MonsterManager() {
     }
 
     /**********
@@ -197,6 +210,65 @@ stroke-linejoin="miter" fill="none" />
      **********/
 
     var locale = {
+        // Development ( these should never appear in production )
+        nyi: "NOT YET IMPLEMENTED",
+        cmderror: "ERROR PROCESSING COMMAND",
+        // General
+        nounderstand: "Sorry, I don't understand **%cmd%**!",
+        // Introduction
+        intro:
+`
+# Zombies
+
+You have just escaped the outside, where zombies have been roaming free for
+nearly ten years now. The society you've helped build crumbled last night as
+zombies over took it. In a chaotic free-for-all you've managed to escape and
+decided to go to The Underground City.
+
+The Underground City was started eighty years ago to provide a place to escape
+global warming while we improved space travel enough to leave the planet for
+good. As time went on it became clear that zombies were the more pertinent
+issue facing society. After twenty years of repurposing the old structures,
+the head architect got bored and quit leaving a web of half-finished
+underground rooms.
+
+Sometimes you feel guilty about leaving all your past friends behind, but then
+you realize you really didn't like those people anyway. You move on without
+guilt.
+
+## How To Win
+
+The purpose of the game is simple: reach the exit without dying. During your
+journey you will find notes, buy items, kill zombies and score points.
+
+If you need help with using commands, use the \`help\` command. If you need
+help with a particular command, use \`help [command]\`. If you need a list
+of commands to try, hit tab while typing in the command box.
+
+## Tips
+
+- You're the blue dot.
+- Notes give you insight into the world, and may provide hints to secrets on
+  the map
+- It may not be necessary to kill every zombie
+- Score is primarily determined by the money you're holding when you finish.
+- There is a finite amount of money on the map.
+- Zombification is contagious.
+- I haven't spellchecked this game yet, so cut me a break
+- It may be necessary to backtrack
+- If you're in the first room, besides looking at your supplies and status,
+  you're only option is to \`go east\`
+`,
+    }
+
+    /*************************
+     * Additional Management *
+     *************************/
+
+    function NotesManager() {
+    }
+
+    function InventoryManager() {
     }
 
     /********************
@@ -204,7 +276,7 @@ stroke-linejoin="miter" fill="none" />
      ********************/
 
     function procCmd(cmd) {
-        return cmd.trim().split(" ");
+        return cmd.trim().toLowerCase().split(" ");
     }
 
     /**************
@@ -217,12 +289,84 @@ stroke-linejoin="miter" fill="none" />
         this.setMap = game.map.bind(null);
 
         this.rooms = new RoomManager();
+        this.monsters = new MonsterManager();
+
+        // Current Room
+        this.roomx = null;
+        this.roomy = null;
     }
     ZombieGame.prototype.respond = function (txt) {
         var cmd = procCmd( txt );
 
+        if ( cmd.length < 1 ) {
+            this.tell(locale.cmderror);
+        }
+
+        // Send command to appropriate response
+        var rem = cmd.slice(1);
+        switch ( cmd[0] ) {
+            case "_start":
+                this.start();
+                break;
+            case "_settings":
+                this.rSettings();
+                break;
+            case "_suggest":
+                this.rSuggest();
+                break;
+            case "help":
+                this.rHelp( rem );
+                break;
+            case "attack":
+                this.rAttack( rem );
+                break;
+            case "go":
+                this.rGo( rem );
+                break;
+            case "shop":
+                this.rShop( rem );
+                break;
+            default:
+                this.tell( locale.nounderstand.replace("%cmd%",this.game.sanitize(txt)) );
+        }
+
         // Update the map
-        this.setMap( this.rooms.getMap() );
+        this.setMap( this.rooms.getMap(this.roomx, this.roomy) );
+    }
+
+    //
+    // Command Responses
+    //
+
+    ZombieGame.prototype.start = function () {
+        this.roomx = 0;
+        this.roomy = 0;
+
+        this.tell( locale.intro );
+    }
+
+    ZombieGame.prototype.rSettings = function () {
+        this.tell( locale.nyi );
+    }
+
+    ZombieGame.prototype.rSuggest = function () {
+        this.tell( locale.nyi );
+    }
+
+    ZombieGame.prototype.rHelp = function ( args ) {
+        this.tell( locale.nyi );
+    }
+
+    ZombieGame.prototype.rAttack = function ( args ) {
+        this.tell( locale.nyi );
+    }
+
+    ZombieGame.prototype.rGo = function ( args ) {
+        this.tell( locale.nyi );
+    }
+
+    ZombieGame.prototype.rShop = function ( args ) {
+        this.tell( locale.nyi );
     }
 
     /****************
