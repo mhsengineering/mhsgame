@@ -32,14 +32,11 @@
     var ROOM_FCHEST = 1<<3; // Room contains chest with useful supplies
     var ROOM_FSTORE = 1<<4; // This room is part of the store
     // Special Events
-    var ROOM_ENONE   = 0;
-    var ROOM_ESTART  = 1;
-    var ROOM_EEND    = 2;
-    var ROOM_EHELP   = 3;
-    var ROOM_EPIT    = 4;
-    var ROOM_ETRAP   = 5;
-    var ROOM_ETRIVIA = 6;
-    var ROOM_ELOVE   = 7;
+    var EVENT_NONE       = 0;
+    var EVENT_START      = 1;
+    var EVENT_END        = 2;
+    var EVENT_CLOSESTART = 3;
+    var EVENT_DOORZOMBIE = 4;
     // Doors
     var ROOM_DEAST  = 1;
     var ROOM_DNORTH = 2;
@@ -50,13 +47,13 @@
         // d (danger), f (flags), e (event), w (walk/doors)
 
         /* y = 0 */
-        {d: 0, f: ROOM_FSTART, e:ROOM_ESTART, w: 0b0001 },
-        {d: 0, f: 0, e: 0, w: 0b1001 },
-        {d: 0, f: 0, e: 0, w: 0b1001 },
+        {d: 0, f: ROOM_FSTART, e:EVENT_START, w: 0b0001 },
+        {d: 0, f: 0, e: EVENT_CLOSESTART, w: 0b1001 },
+        {d: 0, f: 0, e: EVENT_DOORZOMBIE, w: 0b1001 },
         {d: 0, f: 0, e: 0, w: 0b1001 },
         {d: 0, f: 0, e: 0, w: 0b1100 },
         /* y = 1 */
-        {d: 0, f: ROOM_FEND, e: ROOM_EEND, w: 0b0001 },
+        {d: 0, f: ROOM_FEND, e: EVENT_END, w: 0b0001 },
         {d: 0, f: 0, e: 0, w: 0b1100 },
         {d: 0, f: ROOM_FSTORE, e: 0, w: 0b0101 },
         {d: 0, f: ROOM_FSTORE, e: 0, w: 0b1100 },
@@ -181,9 +178,30 @@ stroke-linejoin="miter" fill="none" />
     //
 
     function RoomManager() {
-        this.overlays = [];
+        this.overlays = [""];
+        this.restrictions = [];
+        this.usedevents = [];
 
-        this.startclosed = false;
+        this.startclosed = 0;
+    }
+    RoomManager.prototype.addRestriction = function(x,y,dir) {
+        this.restrictions.push({x,y,dir});
+    }
+    RoomManager.prototype.removeRestriction = function (x,y,dir) {
+        for ( var i in this.restrictions ) {
+            if ( this.restrictions[i].x == x && this.restrictions[i].y == y
+                    && this.restrictions[i].dir == dir ) {
+                this.restrictions[i] == {x: -1, y: -1, dir: -1};
+            }
+        }
+    }
+    RoomManager.prototype.isRestricted = function (x,y,dir) {
+        for ( var r of this.restrictions ) {
+            if ( r.x == x && r.y == y && r.dir == dir ) {
+                return true;
+            }
+        }
+        return false;
     }
     RoomManager.prototype.dirName = function (dir) {
         switch (dir) {
@@ -203,17 +221,14 @@ stroke-linejoin="miter" fill="none" />
             roompath,x,y
         }) + this.overlays.join("\n");
     }
-    RoomManager.prototype.closeStart = function () {
-        this.startclosed = true;
-        this.overlays.push(
-            `<rect width="10" height="10" x="50" y="20" />`
-        );
+    RoomManager.prototype.getRoom = function (x,y) {
+        if ( x > 4 || x < 0 || y > 4 || y < 0 ||
+                Math.floor(x) != x || Math.floor(y) != y)
+            throw new Error("Bad Coords");
+        return rooms[ y*5 + x ];
     }
     RoomManager.prototype.doorExists = function (x, y, dir) {
-        if ( x > 4 || x < 0 || y > 4 || y < 0 )
-            throw new Error("Bad Coords");
-        var room = rooms[ y*5 + x ];
-
+        var room = this.getRoom(x,y);
         var rdir = 0;
         switch ( dir ) {
             case DIR_NORTH:
@@ -249,7 +264,30 @@ stroke-linejoin="miter" fill="none" />
     }
     RoomManager.prototype.travel = function (x, y, dir) {
         var [dx, dy] = this.move(dir);
-        return [x+dx,y+dy,!this.doorExists(x,y,dir)];
+        var reason = 0;
+        if ( !this.doorExists(x,y,dir) ) {
+            reason = 1;
+        } else if ( this.isRestricted(x,y,dir) ) {
+            reason = 2;
+        }
+        return [x+dx,y+dy,reason];
+    }
+
+    RoomManager.prototype.getEvent = function (x,y) {
+        var room = this.getRoom(x,y);
+        for ( var e of this.usedevents ) {
+            if ( e == room.e ) {
+                return 0;
+            }
+        }
+        this.usedevents.push( room.e );
+        return room.e;
+    }
+    RoomManager.prototype.eClosestart = function () {
+        this.addRestriction(1,0,DIR_WEST);
+        this.startclosed = this.overlays.push(
+            `<rect width="10" height="10" x="45" y="20" />`
+        ) - 1;
     }
 
     // Map Directions (note these are different than the ones used
@@ -264,10 +302,30 @@ stroke-linejoin="miter" fill="none" />
      * Monsters *
      ************/
 
-    var monsters = {
-    };
+    var ZOMBIE_NONE  = 0;
+    var ZOMBIE_PLAIN = 1;
+    var ZOMBIE_DOOR  = 2;
 
     function MonsterManager() {
+        this.monsters = [];
+    }
+    MonsterManager.prototype.isZombieBlocking = function (x,y,dir) {
+        for ( var m of this.monsters ) {
+            if ( m.type == ZOMBIE_DOOR && m.dir == dir &&
+                    m.x == x && m.y == y ) {
+                return true;
+            }
+        }
+        return false;
+    }
+    MonsterManager.prototype.addZombie = function (x,y) {
+        throw new Error("NYI");
+    }
+    MonsterManager.prototype.addDoorZombie = function (x,y,dir) {
+        this.monsters.push({
+            x,y,dir,
+            type: ZOMBIE_DOOR,
+        });
     }
 
     /**********
@@ -310,16 +368,115 @@ There is not enough supplies to survive in The Underground City, so you must
 find an exit.
 `,
     /*
-     * Player Responses
+     * Misc
      */
-
-    // Player Stats
-    playerstats:
+    nosettings: "This story does not make use of the settings button",
+    suggest: "*help*, *attack*, *go*, *shop*, *stats*, *notes*, *inventory*. Use *help* for usage.",
+    /*
+     * Help
+     */
+    help_header:
 `
-Your Health: **%health%** / **%maxheal%**\n
-Your Gold: **%gold%**
+## Help
+
+Use the below commands to control your character. Each command has different usage options that
+change how your player behaves.
+`,
+    help_help:
+`
+**Help** (*no alias*) - Print help and usage information about the various commands. \`help\` will
+provide usage information for every command. \`help [cmd]\` will provide usage information for a
+particular command.
+`,
+    help_attack:
+`
+**Attack** (*no alias*) - Attack a zombie. Attacking a zombie will deal damage to the zombie,
+although may cause the zombie to attack you back. If there is only one zombie in the room and
+only one weapon in your inventory, \`attack\` will attack the zombie with your weapon. Otherwise
+\`attack [zombie]\`, \`attack with [weapon]\` and \`attack [zombie] with [weapon]\` can be used
+to specify.
+`,
+    help_go:
+`
+**Go** (*alias **move***) - Move to another room. Use \`move [direction]\`. Valid directions are
+*North*, *South*, *East*, *West* and their respective equivelents *Up*, *Down*, *Right*, *Left*.
+`,
+    help_shoop:
+`
+**Shop** (*alias **store***) - While inside a store, buy items. Use \`shop list\` to list items, \`shop buy [item]\` to buy an item, and \`shop info [item]\` to view an item's information.
+`,
+    help_stat:
+`
+**Stat** (*alias **stats***) - View player status, nearby enemies, current position and other
+useful information. By default, \`stat\` displays all information. Alternatively \`stat health\`,
+\`stat zombies\`, \`stat position\`.
+`,
+    help_notes:
+`
+**Notes** (*alias **notes***) - View collected notes. Notes do not appear in inventory and do
+not affect gameplay, although they may contain useful tips and secrets. \`notes\` and \`notes list\`
+will list all notes, indicating which you have collected. \`notes read [note]\` allows you to read
+a note you've found earlier.
+`,
+    help_inventory:
+`
+**Inventory** (*alias **inv***) - View and manage your inventory. Use \`inventory\` and \`inventory list\`
+to view items in your inventory. For special items \`inventory use [item]\` will allow you to perform
+a special action with an item, such as drink a potion. There is no limit on the number of items
+you may have in your inventory at once.
+`,
+    //
+    // Attack
+    //
+    /* TODO */
+
+    //
+    // Go
+    //
+    go_where: "Where would you like to go?",
+    go_baddir: "Sorry, I don't know where **%dir%** is.",
+    go_travel: "You move **%dir%**.",
+    go_notravel: "You can't travel **%dir%**! Something is blocking your way.",
+    go_notraveldoor: "You can't travel **%dir%**! There's no door that way.",
+
+    // Events
+    go_startclosed:
+`
+The door caves in behind you, closing off your way back. You hear zombies ahead.
+`,
+    go_zombiedoor:
+`
+You see a zombie ahead. He does not seem to notice you, but you will not be able to
+proceed without killing him.
+`,
+    go_zombieblock:
+`
+You can't go **%dir%**! There's a zombie blocking your way. Have you tried killing
+it?
 `,
 
+    //
+    // Shop
+    //
+    /* TODO */
+
+    //
+    // Stat
+    //
+playerstats:
+`
+You have **%health%** / **%maxheal%** health. You have **%gold%** gold.
+`
+
+    //
+    // Notes
+    //
+    /* TODO */
+
+    //
+    // Inventory
+    //
+    /* TODO */
     }
 
     // By using a special function we prevent passing undefined
@@ -383,9 +540,10 @@ Your Gold: **%gold%**
 
     function ZombieGame(game) {
         this.game = game;
-        this.tell = game.tell.bind(null);
         this.setMap = game.map.bind(null);
         this.sanitize = game.sanitize.bind(null);
+
+        this.tellTxt = "";
 
         this.rooms = new RoomManager();
         this.monsters = new MonsterManager();
@@ -393,6 +551,9 @@ Your Gold: **%gold%**
         // Current Room
         this.roomx = null;
         this.roomy = null;
+    }
+    ZombieGame.prototype.tell = function (txt) {
+        this.tellTxt = this.tellTxt + "\n\n" + txt;
     }
     ZombieGame.prototype.respond = function (txt) {
         var cmd = procCmd( txt );
@@ -447,6 +608,9 @@ Your Gold: **%gold%**
 
         // Update the map
         this.setMap( this.rooms.getMap(this.roomx, this.roomy) );
+        // Tell message to user
+        this.game.tell( this.tellTxt );
+        this.tellTxt = "";
     }
 
     //
@@ -537,9 +701,13 @@ Your Gold: **%gold%**
     ZombieGame.prototype.rGo = function ( args ) {
         if ( args.length < 1 ) {
             this.tell( ltxt("go_where") );
+            return;
         }
         if ( args.length > 1) {
-            this.tell( ltxt("nounderstand") );
+            this.tell( ltxt("nounderstand", {
+                "%cmd%": this.sanitize( "Go " + args.join(" ") )
+            }) );
+            return;
         }
 
         var dir = DIR_NONE;
@@ -569,9 +737,22 @@ Your Gold: **%gold%**
         }
 
         var [newx, newy, noable] = this.rooms.travel(this.roomx, this.roomy, dir);
+        if ( noable == 1 ) {
+            this.tell( ltxt("go_notraveldoor", {
+                "%dir%": this.rooms.dirName( dir ),
+            }) );
+            return;
+        }
         if ( noable ) {
             this.tell( ltxt("go_notravel", {
                 "%dir%": this.rooms.dirName( dir )
+            }) );
+            return;
+        }
+
+        if ( this.monsters.isZombieBlocking(this.roomx, this.roomy, dir) ) {
+            this.tell( ltxt("go_zombieblock",{
+                "%dir%": this.rooms.dirName( dir ),
             }) );
             return;
         }
@@ -582,6 +763,24 @@ Your Gold: **%gold%**
         this.tell( ltxt("go_travel",{
             "%dir%": this.rooms.dirName( dir ),
         }) );
+
+        var ev = this.rooms.getEvent(this.roomx, this.roomy);
+        switch (ev) {
+            case EVENT_NONE:
+            case EVENT_START:
+            case EVENT_END:
+                break;
+            case EVENT_CLOSESTART:
+                this.tell( ltxt("go_startclosed") );
+                this.rooms.eClosestart();
+                break;
+            case EVENT_DOORZOMBIE:
+                this.tell( ltxt("go_zombiedoor") );
+                this.monsters.addDoorZombie(2,0,DIR_EAST);
+                break;
+            default:
+                throw new Error("Bad Event");
+        }
     }
 
     // Shopping (store)
@@ -612,6 +811,7 @@ Your Gold: **%gold%**
     // Inventory Management
 
     ZombieGame.prototype.rInv = function ( args ) {
+        this.tell( ltxt("nyi") );
     }
 
     /****************
