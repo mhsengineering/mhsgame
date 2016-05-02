@@ -76,11 +76,14 @@
      * Helper Functions *
      ********************/
 
-    // When the user hits ENTER after typing a command your story will be passed
-    // the raw value of the textbox, including spaces. This simply processes the
-    // command into a more processable form.
-    function procCmd(cmd) {
-        return cmd.trim().split(" ");
+    // Returns true if the command starts with the passed-in text
+    function startsWith(text) {
+        return command.trim().toLocaleLowerCase().startsWith(text);
+    }
+
+    // Returns true if the command ends with the passed-in text
+    function endsWith(text) {
+        return command.trim().toLocaleLowerCase().endsWith(text);
     }
 
     /**************
@@ -109,11 +112,11 @@
         this.end_reply = 0;
     }
     SampleGame.prototype.respond = function (command) {
-        var cmd = procCmd(command);
+        // Get rid of any padded spaces
+        command = command.trim();
 
-        // Before we do anything make sure the command is valid.
-        if ( cmd.length < 1 ) {
-            // Note how we only call tell with strings defined in locale
+        // Before we process anything make sure the command is valid.
+        if ( command.split(" ").length < 1 ) {
             this.tell(locale.cantproc);
             return;
         }
@@ -128,7 +131,7 @@
         }
 
         if ( this.section == this.SEC_RIDDLE ) {
-            if ( locale.ridans.test(cmd[0]) ) {
+            if ( locale.ridans.test(command) ) {
                 this.tell(locale.ridcorrect);
                 this.section = this.SEC_GUESS;
             } else {
@@ -138,7 +141,7 @@
         }
 
         if ( this.section == this.SEC_GUESS ) {
-            var g = parseInt(cmd[0],10);
+            var g = parseInt(command,10);
             if (isNaN(g)) {
                 this.tell(locale.cantproc);
                 return;
