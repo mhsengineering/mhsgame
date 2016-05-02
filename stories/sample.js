@@ -167,7 +167,7 @@
 
             this.tell(
                 locale.guesscorrect.replace("%tries%",this.guess_tries.toString(10))
-                );
+            );
             this.section = this.SEC_END;
 
             return;
