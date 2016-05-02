@@ -13,6 +13,7 @@
     // This is the instance of SampleGame that represents our story. When the user
     // restarts the game we will create a new instance of SampleGame and put it here.
     var cGame = null;
+    var command = null;
 
     // The map is written in SVG - a good tutorial is available at https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial
     // The two elements you should be the most familiar with are `path` and `text`.
@@ -189,7 +190,8 @@
     mhsgame.registerStory({
         name: "sample", // Name should be short and lowercase
         description: "A template for creating your own games",
-    }, function (command, game) {
+    }, function (cmd, game) {
+        command = cmd;
         if ( command == "_start" ) {
             // Reset Game
             cGame = new SampleGame(game);
