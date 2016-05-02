@@ -14,6 +14,8 @@
     // restarts the game we will create a new instance of SampleGame and put it here.
     var cGame = null;
 
+    // The map is written in SVG - a good tutorial is available at https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial
+    // The two elements you should be the most familiar with are `path` and `text`.
     var getMap = (i) => `
         <text x="5" y="5" font-size="80">${i}</text>
         `;
