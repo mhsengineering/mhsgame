@@ -1,49 +1,49 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>MHS Game</title>
+    <head>
+        <title>MHS Game</title>
 
-    <!-- Styles -->
-    <link rel="stylesheet" type="text/css" href="style.css" />
+        <!-- Styles -->
+        <link rel="stylesheet" type="text/css" href="style.css" />
 
-    <!-- Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/0.7.4/purify.min.js"></script>
+        <!-- Libraries -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/0.7.4/purify.min.js"></script>
 
-    <!-- Scripts -->
-    <script src="mhsgame.js"></script>
-    <script src="stories/meta.js"></script>
-    <script src="stories/chapter00.js"></script>
-    <script src="stories/chapter01.js"></script>
-    <script src="stories/sample.js"></script>
-    <script src="stories/zombies.js"></script>
-</head>
+        <!-- Scripts -->
+        <script src="mhsgame.js"></script>
+        <script src="stories/meta.js"></script>
+        <script src="stories/chapter00.js"></script>
+        <script src="stories/chapter01.js"></script>
+        <script src="stories/sample.js"></script>
+        <script src="stories/zombies.js"></script>
+    </head>
 
-<body>
-    <div id="game">
-        <div class="left col">
-            <div id="titlebar" class="header row">
-                <span id="title">MHS Game</span>
-                <span id="settings">&#x2699;</span>
+    <body>
+        <div id="game">
+            <div class="left col">
+                <div id="titlebar" class="header row">
+                    <span id="title">MHS Game</span>
+                    <span id="settings">&#x2699;</span>
+                </div>
+                <div id="console" class="row">
+                    <div id="log"></div>
+                </div>
+                <div id="command" class="row">
+                    <input type="text" id="cmdent" class="typeahead" placeholder="Enter Command" />
+                </div>
             </div>
-            <div id="console" class="row">
-                <div id="log"></div>
-            </div>
-            <div id="command" class="row">
-                <input type="text" id="cmdent" class="typeahead" placeholder="Enter Command" />
+            <div class="right col">
+                <div id="inventory" class="row">
+                    <h2>Inventory</h2>
+                    <ul></ul>
+                </div>
+                <div id="map" class="row">
+                    <!-- Dynamically Loaded SVGs here -->
+                    <svg></svg>
+                </div>
             </div>
         </div>
-        <div class="right col">
-            <div id="inventory" class="row">
-                <h2>Inventory</h2>
-                <ul></ul>
-            </div>
-            <div id="map" class="row">
-                <!-- Dynamically Loaded SVGs here -->
-                <svg></svg>
-            </div>
-        </div>
-    </div>
-</body>
+    </body>
 </html>
